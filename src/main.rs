@@ -1,8 +1,7 @@
-
 use std::process::Command;
 use std::io;
 use std::fs::OpenOptions;
-use std::io::prelude::*;
+//use std::io::prelude::*;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::env;
@@ -30,10 +29,11 @@ fn cmd_cd(paths:&str) -> bool {
 	let path = Path::new(paths);
 
 	if path.is_dir() == false {
+		println!("{} Not a directory.",paths);
 		return false
 	}else{
 		match env::set_current_dir(path.canonicalize().unwrap().as_path()) {
-			Ok(c) => true,
+			Ok(_c) => true,
 			Err(_) => false,
 		}
 	}
@@ -53,18 +53,19 @@ fn main() {
 				}
 	};
 
-	let mut write_history = BufWriter::new(file);
+	let mut history = BufWriter::new(file);
 
 	loop {
 		print!("rush$ ");
 		let command = read_line();
-		write_history.write(command.as_bytes());
-		write_history.flush();
 
 		if command == "\n" {
 			print!("");
 			continue;
 		}
+
+		history.write(command.as_bytes()).unwrap();
+		history.flush().unwrap();
 
 		let args = cmd_parse(command);
 
