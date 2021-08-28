@@ -1,0 +1,6 @@
+[package]
+name = "rust_shell"
+version = "0.1.0"
+authors = ["Francisco Paradella"]
+
+[dependencies]
