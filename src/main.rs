@@ -1,13 +1,16 @@
-use std::process::{Command};
+
+use std::process::Command;
 use std::io;
-use std::fs::{File,OpenOptions};
+use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::io::{BufWriter, Write};
+use std::path::Path;
+use std::env;
 
 fn read_line()-> String {
 	io::stdout().flush().unwrap();
     let mut s = String::new();
-    _ = io::stdin().read_line(&mut s);
+    let _ = io::stdin().read_line(&mut s);
 	s
 }
 
@@ -23,6 +26,18 @@ fn cmd_run(cmd: &str,args: &[String]) -> Command {
     cmd_r
 }
 
+fn cmd_cd(paths:&str) -> bool {
+	let path = Path::new(paths);
+
+	if path.is_dir() == false {
+		return false
+	}else{
+		match env::set_current_dir(path.canonicalize().unwrap().as_path()) {
+			Ok(c) => true,
+			Err(_) => false,
+		}
+	}
+}
 
 fn main() {
 
@@ -46,31 +61,36 @@ fn main() {
 		write_history.write(command.as_bytes());
 		write_history.flush();
 
-		if command.trim() == "quit" {
-			println!("godbye!");
-			break;
-		}else if command == "\n" {
+		if command == "\n" {
 			print!("");
 			continue;
 		}
 
 		let args = cmd_parse(command);
 
-    	let mut cmd_param= cmd_run(&args[0],&args[1..]);
+		if args[0] == "quit" {
+			println!("godbye!");
+			break;
+		}else if args[0] == "cd" {
+			cmd_cd(&args[1]);
+		}else {
 
-    	let cmd_result = match cmd_param.output() {
-			Ok(c) => c,
-			Err(_) => {
-				println!("failed execute command!");
-				continue;
-			}
-		};
+			let mut cmd_param= cmd_run(&args[0],&args[1..]);
 
-		let cmd = match cmd_result.status.success() {
-			true => cmd_result.stdout,
-			false => cmd_result.stderr,
-		};
+    		let cmd_result = match cmd_param.output() {
+				Ok(c) => c,
+				Err(_) => {
+					println!("failed execute command!");
+					continue;
+				}
+			};
 
-    	println!("{}",String::from_utf8(cmd).unwrap());
+			let cmd = match cmd_result.status.success() {
+				true => cmd_result.stdout,
+				false => cmd_result.stderr,
+			};
+
+    		println!("{}",String::from_utf8(cmd).unwrap());
+		}
 	}
 }
