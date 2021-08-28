@@ -40,6 +40,7 @@ fn cmd_cd(paths:&str) -> bool {
 }
 
 fn main() {
+	let mut cd_history:Vec<String> = vec!();
 
 	let file = match OpenOptions::new()
             .read(true)
@@ -68,11 +69,15 @@ fn main() {
 		history.flush().unwrap();
 
 		let args = cmd_parse(command);
-
 		if args[0] == "quit" {
 			println!("godbye!");
 			break;
 		}else if args[0] == "cd" {
+			if "-" == args[1] {
+				cmd_cd(&cd_history[0]);
+				continue;
+			}
+			cd_history.push(args[1].clone());
 			cmd_cd(&args[1]);
 		}else {
 
